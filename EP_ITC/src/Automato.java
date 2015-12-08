@@ -48,7 +48,10 @@ public class Automato {
 	}
 	
 	public void minimizaAutomato(){
+		
 		removeEstadoInacessivel();
+		
+		removeEstadoInutil();
 		
 		for(int i = 0; i < delta.length; i++){
 			for(int j = 0; j < delta[i].length; j++){
@@ -56,6 +59,44 @@ public class Automato {
 			}
 			System.out.println();
 		}
+	}
+	
+	private void removeEstadoInutil(){
+		//Define os estados de aceitacao como uteis
+		for(int i = 0; i < estados.length; i++){
+			if(estados[i].aceitacao()){
+				estados[i].setUtil(true);
+			}
+		}
+		
+		//Encontra todos os estados uteis
+		for(int i = 0; i < estados.length; i++){
+			if(estados[i].isUtil() && !estados[i].isFinalizado()){
+				for(int l = 0; l < delta.length; l++){
+					for(int c = 0; c < delta[c].length; c++){
+						if(delta[l][c] == i){
+							estados[l].setUtil(true);
+							break;
+						}
+					}
+				}
+				estados[i].setFinalizado(true);
+				i = 0;
+			}
+		}
+		
+		int[] inuteis = new int[estados.length];
+		int cont = 0;
+		
+		//Conta os estados inuteis
+		for(int i = 0; i < estados.length; i++){
+			if(!estados[i].isUtil()){
+				inuteis[cont] = i;
+				cont++;
+			}
+		}
+		
+		removeEstados(cont, inuteis);
 	}
 	
 	private void removeEstadoInacessivel(){
@@ -70,7 +111,8 @@ public class Automato {
 				continue;
 			}
 			
-			for(int i = 0; i < delta.length; i ++){	
+			for(int i = 0; i < delta.length; i ++){
+				achei = false;
 				//verifica se é o estado que eu estou verificando
 				if(i == est){
 					continue;
@@ -102,15 +144,20 @@ public class Automato {
  			}
 		}
 		
+		removeEstados(cont, inac);		
+	}
+	
+	public void removeEstados(int cont, int[] est){
 		int[][] newDelta = new int[delta.length - cont][delta[0].length];
 		Estado[] newEstados = new Estado[estados.length - cont];
 		int cont2 = 0;
-		achei = false;
+		boolean achei = false;
 		
-		//cria uma nova tabela e um novo array de estados somente com estados acessiveis
+		//cria uma nova tabela e um novo array de estados somente com estados que devem ficar
 		for(int i=0; i < delta.length; i++){
+			achei = false;
 			for(int n=0; n<cont; n++){
-				if(i == inac[n]){
+				if(i == est[n]){
 					achei = true;
 					break;
 				}
@@ -127,4 +174,5 @@ public class Automato {
 		delta = newDelta;
 		estados = newEstados;
 	}
+	
 }
